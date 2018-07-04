@@ -1,0 +1,21 @@
+{
+  "name": "spike",
+  "version": "0.0.1",
+  "description": "An assistant for your library (of files)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node src/index.ts"
+  },
+  "author": "Michael Eaton <byzanitnefailure@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^10.5.1",
+    "@types/sqlite3": "^3.1.3",
+    "ts-node": "^7.0.0"
+  },
+  "dependencies": {
+    "sqlite3": "^4.0.1",
+    "tslib": "^1.9.3"
+  }
+}
