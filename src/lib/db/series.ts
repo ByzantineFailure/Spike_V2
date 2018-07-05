@@ -1,5 +1,5 @@
-import {Season} from './season';
-import * as sqlite from 'sqlite3';
+import {listSeasons, Season} from './season';
+import {Database} from 'sqlite3';
 
 export declare interface Series {
     id: number|null;
@@ -8,23 +8,40 @@ export declare interface Series {
     seasons: Season[];
 };
 
-export function listAllSeries(db: sqlite.Database): Promise<Series[]> {
+export function listAllSeries(db: Database, getSeasons: boolean = false): Promise<Series[]> {
     return new Promise((res, rej) => {
         db.all(`SELECT id, name, path FROM series;`, (err, rows) => {
             if (err) {
                 rej(err);
             }
-            res(rows.map(row => ({
+
+            const allSeries = rows.map(row => ({
                 id: row.id,
                 name: row.name,
                 path: row.path,
                 seasons: [],
-            })));
+            }));
+            
+            if (!getSeasons) {
+                res(allSeries);
+            } else {
+                resolveSeasons(db, allSeries)
+                    .then(val => res(val))
+                    .catch(err => rej(err));
+            }
+            
         });
     });
 }
 
-export function insertSeries(db: sqlite.Database, toInsert: Series): Promise<Series> {
+function resolveSeasons(db: Database, seriesList: Series[]): Promise<Series[]> {
+    return Promise.all(seriesList.map(async series => { 
+        const seasons = await listSeasons(db, series.id!);
+        return {...series, seasons};
+    }));
+}
+
+export function insertSeries(db: Database, toInsert: Series): Promise<Series> {
     return new Promise((res, rej) => {
         db.serialize(() => {
             db.run(`INSERT INTO series (name, path) VALUES (?, ?);`, 
@@ -33,10 +50,11 @@ export function insertSeries(db: sqlite.Database, toInsert: Series): Promise<Ser
                     rej(err);
                 }
             });
-            db.get(`SELECT last_insert_rowid();`, (err, row) => {
+            db.get(`SELECT last_insert_rowid() as id;`, (err, row) => {
                 if (err) {
                     rej(err);
                 }
+                console.log(row);
                 res({...toInsert, id: row.id });
             });
         });

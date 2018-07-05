@@ -1,10 +1,10 @@
-import * as fs from 'fs';
 import * as path from 'path';
-import * as process from 'process';
 import {Database} from 'sqlite3';
 
 import {insertSeries, Series} from '../db/series';
-import {Season} from '../db/season';
+import {insertSeason, Season} from '../db/season';
+import {promptWithDefault, promptYesNo} from './prompt';
+import {listDirectoryContents, isDirectory} from '../fs/util';
 
 export declare interface Context {
     series: Series|null,
@@ -138,13 +138,14 @@ async function assignSeason(rootPath: string,
     if (isSeason) {
         const seasonName = await getSeasonName(childPath);
         console.log('Set season in context to: ' + seasonName);
-        return {...context, season: {
+        const newSeason = await insertSeason(db, {
             id: null,
             seriesId: context.series.id,
             name: seasonName,
             path: rootPath,
             episodes: [],
-        }};
+        });
+        return {...context, season: newSeason};
     }
 
     return context;
@@ -161,56 +162,3 @@ async function getSeasonName(childPath: string): Promise<string> {
 
     return seasonName;
 }
-
-function prompt(message: string): Promise<string> {
-   console.log(message);
-    process.stdin.resume();
-    return new Promise((res) => {
-        process.stdin.once('data', data => res(data.toString().trim()));
-    });
-}
-
-async function promptWithDefault(message: string, defaultValue: string): Promise<string> {
-    const value = await prompt(message);
-    return value || defaultValue;
-}
-
-async function promptYesNo(message: string): Promise<boolean> {
-    const response = await prompt(message);
-    if (response.toLowerCase().startsWith('y')) {
-        return true;
-    } else if (response.toLowerCase().startsWith('n')) {
-        return false;
-    } else {
-        console.log(`Please respond with a 'y' or 'n'`);
-        return await promptYesNo(message);
-    }
-}
-
-async function isDirectory(rootPath: string): Promise<boolean> {
-    const stats = await asyncStat(rootPath);
-    return stats.isDirectory();
-}
-
-function asyncStat(rootPath: string): Promise<fs.Stats> {
-    return new Promise((res, rej) => {
-        fs.stat(rootPath, (err, stats) => {
-          if (err) {
-            rej(err);
-          }
-          res(stats);
-        });
-    });
-}
-
-function listDirectoryContents(rootPath: string): Promise<string[]> {
-    return new Promise((res, rej) => {
-        fs.readdir(rootPath, (err, contents) => {
-            if (err) {
-                rej(err);
-            }
-            res(contents);
-        })
-    });
-}
-

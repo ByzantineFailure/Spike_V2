@@ -41,8 +41,8 @@ function createSeasonTable(db: sqlite3.Database): Promise<void> {
          id INTEGER PRIMARY KEY AUTOINCREMENT, 
          name TEXT NOT NULL,
          path TEXT NOT NULL,
-         series INTEGER NOT NULL,
-         FOREIGN KEY(series) REFERENCES series(id) ON DELETE CASCADE
+         series_id INTEGER NOT NULL,
+         FOREIGN KEY(series_id) REFERENCES series(id) ON DELETE CASCADE
        );
     `;
     return runQuery(db, query);
@@ -54,10 +54,10 @@ function createEpisodeTable(db: sqlite3.Database): Promise<void> {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         path TEXT NOT NULL,
-        series INTEGER,
-        season INTEGER,
-        FOREIGN KEY(series) REFERENCES series(id) ON DELETE CASCADE,
-        FOREIGN KEY(season) REFERENCES season(id) ON DELETE CASCADE);
+        series_id INTEGER,
+        season_id INTEGER,
+        FOREIGN KEY(series_id) REFERENCES series(id) ON DELETE CASCADE,
+        FOREIGN KEY(season_id) REFERENCES season(id) ON DELETE CASCADE);
     `;
     return runQuery(db, query);
 }
