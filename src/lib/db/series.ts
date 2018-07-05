@@ -36,7 +36,7 @@ export function listAllSeries(db: Database, getSeasons: boolean = false): Promis
 
 function resolveSeasons(db: Database, seriesList: Series[]): Promise<Series[]> {
     return Promise.all(seriesList.map(async series => { 
-        const seasons = await listSeasons(db, series.id!);
+        const seasons = await listSeasons(db, series.id!, true);
         return {...series, seasons};
     }));
 }

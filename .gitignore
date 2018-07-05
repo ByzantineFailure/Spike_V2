@@ -1,4 +1,6 @@
 node_modules/
+library/
+test_structure/
 dist/*
 .spike.db
 *.swp

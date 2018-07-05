@@ -1,4 +1,4 @@
-import {Episode} from './episode';
+import {getEpisodesInSeason, Episode} from './episode';
 import {Database} from 'sqlite3';
 
 export declare interface Season {
@@ -17,25 +17,37 @@ export function listSeasons(
        WHERE series_id = ${seriesId};
     `;
 
-    if (getEpisodes) {
-        console.log('episodes not yet supported.');
-    }
-
     return new Promise((res, rej) => {
         db.all(query, (err, rows) => {
             if (err) {
                 rej(err);
             }
-            res(rows.map(row => ({
+            
+            const seasonsWithoutEpisodes = rows.map(row => ({
                 id: row.id,
-                seriesId: row.seriesId,
+                seriesId: row.series_id,
                 name: row.name,
                 path: row.path,
                 episodes: [],
-            })));
+            }));
+
+            if (!getEpisodes) {
+                res(seasonsWithoutEpisodes);
+            }
+            
+            Promise.all(seasonsWithoutEpisodes.map(s => addEpisodesToSeason(db, s)))
+                .then(added => res(added))
+                .catch(err => rej(err));
         });
     });
 
+}
+
+async function addEpisodesToSeason(db: Database, season: Season): Promise<Season> {
+   return {
+        ...season,
+       episodes: await getEpisodesInSeason(db, season.id!)
+   };
 }
 
 export function insertSeason(db: Database, toInsert: Season): Promise<Season> {

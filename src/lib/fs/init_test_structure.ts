@@ -10,11 +10,7 @@ export const TWO_SEASON_SERIES_S2_DIR_NAME = 's2';
 
 export const NO_SEASON_SERIES_DIR_NAME = 'thing2';
 
-export async function deleteOldDatabase(basePath: string = '.'): Promise<void> {
-   await deleteFile(path.join(basePath, '.spike.db')); 
-}
-
-export async function initTestStructure(basePath: string = '.'): Promise<void> {
+export async function initTestStructure(libraryRoot: string, basePath: string = '.'): Promise<void> {
     const structurePath = path.join(basePath, TEST_BASE);
     
     // Remove any old structure that exists
@@ -25,6 +21,16 @@ export async function initTestStructure(basePath: string = '.'): Promise<void> {
     
     await createSeriesWithTwoSeasons(structurePath);
     await createSeriesWithNoSeasons(structurePath);
+
+    // Delete the old database
+    await deleteOldDatabase(basePath);
+
+    // Delete the old root directory
+    await removeDirectory(libraryRoot);
+}
+
+export async function deleteOldDatabase(basePath: string): Promise<void> {
+   await deleteFile(path.join(basePath, '.spike.db')); 
 }
 
 async function createSeriesWithTwoSeasons(structurePath: string): Promise<void> {
