@@ -28,7 +28,7 @@ function createSeriesTable(db: sqlite3.Database): Promise<void> {
    const query = `
      CREATE TABLE IF NOT EXISTS series (
        id INTEGER PRIMARY KEY AUTOINCREMENT,
-       name TEXT NOT NULL,
+       name TEXT NOT NULL UNIQUE,
        path TEXT NOT NULL
      );
    `;
@@ -54,7 +54,7 @@ function createEpisodeTable(db: sqlite3.Database): Promise<void> {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         path TEXT NOT NULL,
-        series INTEGER NOT NULL,
+        series INTEGER,
         season INTEGER,
         FOREIGN KEY(series) REFERENCES series(id) ON DELETE CASCADE,
         FOREIGN KEY(season) REFERENCES season(id) ON DELETE CASCADE);
