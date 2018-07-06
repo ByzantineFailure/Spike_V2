@@ -37,7 +37,32 @@ export class FileMover {
         return path.join(this.unclassifiedPath, name);
     }
 
-    moveFileToDestination(source: string, destination: string): Promise<void> {
-        return fsUtil.moveFile(source, destination);
+    async moveFileToDestination(source: string, destination: string): Promise<void> {
+        let finalDestination = destination;
+
+        while (await fsUtil.fileExists(finalDestination)) {
+            finalDestination = this.createDuplicateFileRename(finalDestination);
+        }
+
+        if (finalDestination !== destination) {
+            console.log(`file already exists at ${destination}`);
+            console.log(`Writing instead to ${finalDestination}`);
+        }
+
+        return fsUtil.moveFile(source, finalDestination);
+    }
+
+    private createDuplicateFileRename(filename: string): string {
+        const extensionRemoved = filename.substring(0, filename.lastIndexOf('.'));
+        const extension = filename.substring(filename.lastIndexOf('.'));
+        const duplicateNumberMatch = extensionRemoved.match(/ - Spike_([0-9])+$/);
+
+        if (duplicateNumberMatch) {
+            const existingNumber = Number.parseInt(duplicateNumberMatch[1]);            
+            return extensionRemoved.replace(/ - Spike_([0-9])+$/, ` - Spike_${existingNumber + 1}`)
+                + extension;
+        }
+
+        return extensionRemoved + ' - Spike_1' + extension;
     }
 }
