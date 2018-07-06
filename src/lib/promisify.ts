@@ -16,6 +16,7 @@ export function callAsVoidPromise<T>(call: VoidCall<T>, arg: T): Promise<void> {
         call(arg, err => {
             if (err) {
                 rej(err);
+                return;
             }
             res();
         });
@@ -27,6 +28,7 @@ export function callAsVoidPromise2<S, T>(call: VoidCall2<S, T>, arg1: S, arg2: T
         call(arg1, arg2, err => {
             if (err) {
                 rej(err);
+                return;
             }
             res();
         });
@@ -50,6 +52,7 @@ export function callAsPromise<S, T>(call: Call<S, T>, arg1: S): Promise<T> {
        call(arg1, (err, data) => {
             if (err) {
                 rej(err);
+                return;
             }
            res(data);
        });
@@ -61,6 +64,7 @@ export function callAsPromise2<S, R, T>(call: Call2<S, R, T>, arg1: S, arg2: R):
         call(arg1, arg2, (err, data) => {
             if (err) {
                 rej(err);
+                return;
             }
            res(data);
         });

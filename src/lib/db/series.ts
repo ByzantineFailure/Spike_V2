@@ -13,6 +13,7 @@ export function listAllSeries(db: Database, getSeasons: boolean = false): Promis
         db.all(`SELECT id, name, path FROM series;`, (err, rows) => {
             if (err) {
                 rej(err);
+                return;
             }
 
             const allSeries = rows.map(row => ({
@@ -24,6 +25,7 @@ export function listAllSeries(db: Database, getSeasons: boolean = false): Promis
             
             if (!getSeasons) {
                 res(allSeries);
+                return;
             } else {
                 resolveSeasons(db, allSeries)
                     .then(val => res(val))
@@ -31,6 +33,41 @@ export function listAllSeries(db: Database, getSeasons: boolean = false): Promis
             }
             
         });
+    });
+}
+
+export function getSeriesByName(db: Database, name: String, getSeasons: boolean = false): Promise<Series|null> {
+   const query = `
+       SELECT id, name, path FROM series WHERE name = ?;
+   `;
+    
+    return new Promise((res, rej) => {
+       db.get(query, [name], (err, row) => {
+           if (err) {
+               rej(err);
+               return;
+           }
+           if (!row) {
+               res(null);
+               return;
+           }
+
+           const result = {
+               id: row.id,
+               name: row.name,
+               path: row.path,
+               seasons: [],
+           };
+
+           if (!getSeasons) {
+               res(result);
+               return;
+           }
+
+           resolveSeasons(db, [result])
+               .then(series => res(series[0]))
+               .catch(err => rej(err));
+       });
     });
 }
 
@@ -53,6 +90,7 @@ export function insertSeries(db: Database, toInsert: Series): Promise<Series> {
             db.get(`SELECT last_insert_rowid() as id;`, (err, row) => {
                 if (err) {
                     rej(err);
+                    return;
                 }
                 console.log(row);
                 res({...toInsert, id: row.id });

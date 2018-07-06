@@ -1,17 +1,13 @@
 import * as path from 'path';
 import {Database} from 'sqlite3';
 
-import {insertSeries, Series} from '../db/series';
-import {insertSeason, Season} from '../db/season';
+import {insertSeason} from '../db/season';
+import {assignSeries} from './get_series';
 import {insertEpisode, Episode} from '../db/episode';
 import {promptWithDefault, promptYesNo} from './prompt';
 import {createDirectory, listDirectoryContents, isDirectory} from '../fs/util';
 import {FileMover} from '../fs/file_mover';
-
-export declare interface Context {
-    series: Series|null,
-    season: Season|null,
-}
+import {Context} from './interfaces';
 
 const EMPTY_CONTEXT: Context = { series: null, season: null };
 
@@ -115,43 +111,6 @@ async function processFile(
      
     await insertEpisode(db, episode);
     await mover.moveFileToDestination(fullPath, destination);
-}
-
-async function assignSeries(
-    directoryName: string, context: Context, db: Database, mover: FileMover): Promise<Context> {
-    const isSeries = await promptYesNo('Is this directory a series? (y/n)');
-
-    if (isSeries) {
-        const seriesName = await getSeriesName(directoryName);
-        const seriesPath = mover.createSeriesPath(seriesName);
-
-        console.log('Set series in context to: ' + seriesName);
-
-        const newSeries = await insertSeries(db, {
-            id: null,
-            name: seriesName,
-            path: seriesPath,
-            seasons: [],
-        });
-        
-        await createDirectory(seriesPath);
-
-        return {...context, series: newSeries};
-    }
-
-    return context;
-}
-
-async function getSeriesName(childPath: string): Promise<string> {
-    let userSure = false;
-    let seriesName = childPath;
-
-    while (!userSure) {
-        seriesName = await promptWithDefault(`Enter series name (${childPath}):`, childPath);
-        userSure = await promptYesNo(`Set series name set ${seriesName}? (y/n)`)
-    }
-
-    return seriesName;
 }
 
 async function assignSeason(directoryName: string, context: Context, 

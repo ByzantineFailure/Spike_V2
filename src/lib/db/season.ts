@@ -21,6 +21,7 @@ export function listSeasons(
         db.all(query, (err, rows) => {
             if (err) {
                 rej(err);
+                return;
             }
             
             const seasonsWithoutEpisodes = rows.map(row => ({
@@ -33,6 +34,7 @@ export function listSeasons(
 
             if (!getEpisodes) {
                 res(seasonsWithoutEpisodes);
+                return;
             }
             
             Promise.all(seasonsWithoutEpisodes.map(s => addEpisodesToSeason(db, s)))
@@ -64,6 +66,7 @@ export function insertSeason(db: Database, toInsert: Season): Promise<Season> {
             db.get(`SELECT last_insert_rowid() as id;`, (err, row) => {
                 if (err) {
                     rej(err);
+                    return;
                 }
                 res({...toInsert, id: row.id });
             });

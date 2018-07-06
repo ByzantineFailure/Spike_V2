@@ -24,3 +24,15 @@ export async function promptYesNo(message: string): Promise<boolean> {
         return await promptYesNo(message);
     }
 }
+
+export async function promptForNumber(
+    message: string, min: number, max: number): Promise<number> {
+    const response = await prompt(message);
+    const parsed = Number.parseInt(response);
+    if ((!parsed && parsed !== 0) || parsed < min || parsed > max) {
+        console.log(`Please enter a number between ${min} and ${max}`);
+        return await promptForNumber(message, min, max);
+    }
+    
+    return parsed;
+}
