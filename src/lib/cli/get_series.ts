@@ -9,7 +9,17 @@ import {Context} from './interfaces';
 
 export async function assignSeries(
     directoryName: string, context: Context, db: Database, mover: FileMover): Promise<Context> {
-    const isSeries = await promptYesNo('Is this directory a series? (y/n)');
+    // If we have a series in context, ask the user if the current directory is part of it
+    // If it is, no need to go any further.
+    if(context.series) {
+        const isPartOfCurrentSeries = 
+        await promptYesNo(`Is this part of the current series: ${context.series.name} (y/n)?`);
+        if (isPartOfCurrentSeries) {
+            return {...context};
+        }
+    }
+
+    const isSeries = await promptYesNo('Does this directory contain episodes from a series?  You will have a chance to make changes to this designation on a file-level if needed. (y/n)');
     
     if (!isSeries) {
         return context;
@@ -29,7 +39,7 @@ export async function assignSeries(
 
     const numberOfOptions = similarSeries.length + 3;
          
-    console.log(`Best guess series:`);
+    console.log(`Best guess existing series:`);
     console.log(`==========================`);
     let i = 0;
     for (; i < similarSeries.length; i++) {
